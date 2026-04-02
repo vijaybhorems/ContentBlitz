@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ContentBlitz - Multi-Agent Architecture</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #0d1117;
+            color: #c9d1d9;
+        }
+        h1 {
+            text-align: center;
+            color: #58a6ff;
+            margin-bottom: 5px;
+        }
+        h2 {
+            text-align: center;
+            color: #8b949e;
+            font-weight: 400;
+            font-size: 1rem;
+            margin-top: 0;
+        }
+        .diagram-section {
+            max-width: 1400px;
+            margin: 30px auto;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 30px;
+        }
+        .diagram-section h3 {
+            color: #58a6ff;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .diagram-section p {
+            color: #8b949e;
+            font-size: 0.9rem;
+            margin-top: -5px;
+            margin-bottom: 20px;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+        .legend {
+            max-width: 1400px;
+            margin: 20px auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+        .stats {
+            max-width: 1400px;
+            margin: 20px auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .stat-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 15px 25px;
+            text-align: center;
+        }
+        .stat-card .number {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #58a6ff;
+        }
+        .stat-card .label {
+            font-size: 0.8rem;
+            color: #8b949e;
+        }
+    </style>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#1f6feb',
+                primaryTextColor: '#c9d1d9',
+                primaryBorderColor: '#30363d',
+                lineColor: '#58a6ff',
+                secondaryColor: '#161b22',
+                tertiaryColor: '#0d1117',
+                fontSize: '14px'
+            },
+            flowchart: {
+                htmlLabels: true,
+                curve: 'basis',
+                padding: 15,
+                nodeSpacing: 50,
+                rankSpacing: 60
+            }
+        });
+    </script>
+</head>
+<body>
+
+<h1>ContentBlitz — Multi-Agent Content Marketing System</h1>
+<h2>Production Architecture &bull; 8 Agents &bull; 231 Tests &bull; Circuit Breakers &bull; A/B Testing</h2>
+
+<div class="stats">
+    <div class="stat-card"><div class="number">8</div><div class="label">Specialized Agents</div></div>
+    <div class="stat-card"><div class="number">5</div><div class="label">External APIs</div></div>
+    <div class="stat-card"><div class="number">231</div><div class="label">Tests + Evals</div></div>
+    <div class="stat-card"><div class="number">~3,200</div><div class="label">Lines of Code</div></div>
+    <div class="stat-card"><div class="number">5</div><div class="label">Circuit Breakers</div></div>
+</div>
+
+<div class="legend">
+    <div class="legend-item"><div class="legend-color" style="background:#1f6feb"></div> Core Agents</div>
+    <div class="legend-item"><div class="legend-color" style="background:#da3633"></div> Quality &amp; Guard</div>
+    <div class="legend-item"><div class="legend-color" style="background:#238636"></div> External APIs</div>
+    <div class="legend-item"><div class="legend-color" style="background:#d29922"></div> State &amp; Resilience</div>
+    <div class="legend-item"><div class="legend-color" style="background:#a371f7"></div> UI Layer</div>
+</div>
+
+<!-- DIAGRAM 1: Implemented System Architecture -->
+<div class="diagram-section">
+    <h3>1. System Architecture (Implemented)</h3>
+    <p>Complete data flow from user input through LangGraph orchestration to output. All components shown are implemented and tested.</p>
+    <pre class="mermaid">
+flowchart TB
+    subgraph UI["🖥️ Streamlit Web Interface"]
+        CHAT["💬 Chat Interface<br/><i>Message history<br/>+ processing log</i>"]
+        PREVIEW["📄 Content Preview<br/><i>Tabbed: Blog | LinkedIn<br/>Image | Strategy | Fact Check</i>"]
+        SIDEBAR["⚙️ Sidebar<br/><i>API status indicators<br/>+ settings</i>"]
+    end
+
+    CHAT --> QH
+
+    subgraph ORCHESTRATOR["🧠 LangGraph Orchestration"]
+        QH["🔀 Query Handler<br/><i>Intent → 5 categories</i>"]
+        STATE["📋 ContentState<br/><i>TypedDict + reducers</i>"]
+        COND1["route_by_intent()"]
+        COND2["route_after_research()"]
+        COND3["route_after_content()"]
+        QH --> COND1
+    end
+
+    subgraph AGENTS["⚙️ Content Generation Agents"]
+        RA["🔍 Deep Research<br/>Agent<br/><i>Multi-query search<br/>+ LLM synthesis</i>"]
+        BLOG["📝 SEO Blog<br/>Writer<br/><i>1200–1800 words<br/>SEO optimized</i>"]
+        LI["💼 LinkedIn<br/>Writer<br/><i>Hook + hashtags<br/>+ CTA</i>"]
+        IMG["🎨 Image<br/>Generation<br/><i>LLM prompt engineering<br/>+ provider fallback</i>"]
+        CS["📊 Content<br/>Strategist<br/><i>Strategy reports<br/>+ data points</i>"]
+    end
+
+    subgraph GUARD["🛡️ Quality &amp; Optimization Layer"]
+        HG["🛡️ Hallucination<br/>Guard<br/><i>Claim extraction<br/>+ verification<br/>+ trust score</i>"]
+        ABV["🔬 A/B Variant<br/>Generator<br/><i>3-5 hook variants<br/>+ 5-dim scoring</i>"]
+        SEO["📈 SEO Scorer<br/><i>7-factor scoring<br/>100-point scale</i>"]
+        QV["✅ Quality<br/>Validator<br/><i>Length, structure<br/>readability checks</i>"]
+    end
+
+    subgraph RESILIENCE["🔒 Resilience Layer"]
+        CB_REG["Circuit Breaker<br/>Registry<br/><i>Shared across<br/>all clients</i>"]
+        CB_OAI["CB: OpenAI"]
+        CB_ANT["CB: Anthropic"]
+        CB_TAV["CB: Tavily"]
+        CB_DAL["CB: DALL-E 3"]
+        CB_STB["CB: Stability"]
+        CB_REG --- CB_OAI & CB_ANT & CB_TAV & CB_DAL & CB_STB
+    end
+
+    subgraph APIS["🌐 External APIs"]
+        direction LR
+        OPENAI["OpenAI<br/>GPT-4o<br/><i>Primary LLM</i>"]
+        ANTHROPIC["Anthropic<br/>Claude Sonnet<br/><i>Fallback LLM</i>"]
+        TAVILY["Tavily AI<br/><i>Web search</i>"]
+        DALLE["DALL-E 3<br/><i>Primary images</i>"]
+        STABILITY["Stability AI<br/>SDXL<br/><i>Fallback images</i>"]
+    end
+
+    COND1 -->|blog/linkedin/research/strategy| RA
+    COND1 -->|image| IMG
+    RA --> COND2
+    COND2 -->|blog| BLOG
+    COND2 -->|linkedin| LI
+    COND2 -->|research/strategy| CS
+    BLOG & LI --> COND3
+    COND3 -->|fact check| HG
+    HG --> ABV
+    BLOG --> SEO & QV
+
+    ABV & CS & IMG --> PREVIEW
+    BLOG & LI --> PREVIEW
+
+    RA --> TAVILY
+    BLOG & LI & CS & HG & QH --> OPENAI
+    OPENAI -.->|fallback| ANTHROPIC
+    IMG --> DALLE
+    DALLE -.->|fallback| STABILITY
+
+    CB_REG -.-> OPENAI & ANTHROPIC & TAVILY & DALLE & STABILITY
+
+    style UI fill:#1c1030,stroke:#a371f7,color:#c9d1d9
+    style ORCHESTRATOR fill:#0d2137,stroke:#1f6feb,color:#c9d1d9
+    style AGENTS fill:#0d2137,stroke:#1f6feb,color:#c9d1d9
+    style GUARD fill:#2d1215,stroke:#da3633,color:#c9d1d9
+    style RESILIENCE fill:#261c00,stroke:#d29922,color:#c9d1d9
+    style APIS fill:#0d2117,stroke:#238636,color:#c9d1d9
+
+    style QH fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style RA fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style BLOG fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style LI fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style IMG fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style CS fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style HG fill:#da3633,stroke:#f85149,color:#fff
+    style ABV fill:#da3633,stroke:#f85149,color:#fff
+    style CB_REG fill:#9e6a03,stroke:#d29922,color:#fff
+    style STATE fill:#9e6a03,stroke:#d29922,color:#fff
+    </pre>
+</div>
+
+<!-- DIAGRAM 2: LangGraph Workflow -->
+<div class="diagram-section">
+    <h3>2. LangGraph Workflow — Conditional Routing</h3>
+    <p>The exact StateGraph topology as defined in graph.py with three conditional edge functions.</p>
+    <pre class="mermaid">
+flowchart LR
+    START(("START"))
+    QH["Query<br/>Handler"]
+    DR["Deep<br/>Research"]
+    BLOG2["SEO Blog<br/>Writer"]
+    LI2["LinkedIn<br/>Writer"]
+    CS2["Content<br/>Strategist"]
+    IMG2["Image<br/>Generation"]
+    HG2["Hallucination<br/>Guard"]
+    ABV2["A/B Variant<br/>Generator"]
+    END2(("END"))
+
+    START --> QH
+
+    QH -->|"route_by_intent()<br/>blog/linkedin/<br/>research/strategy"| DR
+    QH -->|"route_by_intent()<br/>image"| IMG2
+
+    DR -->|"route_after_research()<br/>blog"| BLOG2
+    DR -->|"route_after_research()<br/>linkedin"| LI2
+    DR -->|"route_after_research()<br/>research/strategy"| CS2
+
+    BLOG2 -->|"route_after_content()<br/>has content"| HG2
+    LI2 -->|"route_after_content()<br/>has content"| HG2
+    BLOG2 -->|"route_after_content()<br/>no content"| END2
+    LI2 -->|"route_after_content()<br/>no content"| END2
+
+    HG2 --> ABV2
+
+    CS2 --> END2
+    IMG2 --> END2
+    ABV2 --> END2
+
+    style START fill:#238636,stroke:#3fb950,color:#fff
+    style END2 fill:#238636,stroke:#3fb950,color:#fff
+    style QH fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style DR fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style BLOG2 fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style LI2 fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style CS2 fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style IMG2 fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style HG2 fill:#da3633,stroke:#f85149,color:#fff
+    style ABV2 fill:#da3633,stroke:#f85149,color:#fff
+    </pre>
+</div>
+
+<!-- DIAGRAM 3: Circuit Breaker Pattern -->
+<div class="diagram-section">
+    <h3>3. Circuit Breaker — Resilience Pattern</h3>
+    <p>Per-provider circuit breakers prevent cascading failures. Shared registry ensures all clients see the same state.</p>
+    <pre class="mermaid">
+stateDiagram-v2
+    [*] --> CLOSED
+
+    CLOSED --> CLOSED : success<br/>(reset failure count)
+    CLOSED --> OPEN : failure_count >= threshold<br/>(log: circuit_opened)
+
+    OPEN --> OPEN : requests rejected<br/>(fail fast)
+    OPEN --> HALF_OPEN : recovery_timeout<br/>expires (60s)
+
+    HALF_OPEN --> CLOSED : probe succeeds<br/>(log: circuit_closed)
+    HALF_OPEN --> OPEN : probe fails<br/>(log: circuit_opened)
+    </pre>
+</div>
+
+<!-- DIAGRAM 4: LLM Fallback Chain -->
+<div class="diagram-section">
+    <h3>4. LLM Fallback Chain with Circuit Breakers</h3>
+    <p>How the LLMClient handles failures: checks circuit breaker state before each call, falls back automatically.</p>
+    <pre class="mermaid">
+flowchart TD
+    REQ["generate() called"]
+
+    REQ --> CB_O{"OpenAI<br/>breaker<br/>allows?"}
+    CB_O -->|Yes| CALL_O["Call OpenAI<br/>GPT-4o"]
+    CB_O -->|No - OPEN| SKIP_O["Skip OpenAI<br/><i>log: circuit_open</i>"]
+
+    CALL_O -->|Success| REC_O["record_success()<br/>Return LLMResponse"]
+    CALL_O -->|Failure| FAIL_O["record_failure()<br/><i>log: openai_failed</i>"]
+
+    SKIP_O --> CB_A
+    FAIL_O --> CB_A
+
+    CB_A{"Anthropic<br/>breaker<br/>allows?"}
+    CB_A -->|Yes| CALL_A["Call Anthropic<br/>Claude Sonnet"]
+    CB_A -->|No - OPEN| SKIP_A["Skip Anthropic<br/><i>log: circuit_open</i>"]
+
+    CALL_A -->|Success| REC_A["record_success()<br/>Return LLMResponse"]
+    CALL_A -->|Failure| FAIL_A["record_failure()<br/><i>log: anthropic_failed</i>"]
+
+    SKIP_A --> EXHAUST
+    FAIL_A --> EXHAUST
+
+    EXHAUST["raise LLMFallbackExhausted<br/><i>collected error messages</i>"]
+
+    style REQ fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style REC_O fill:#238636,stroke:#3fb950,color:#fff
+    style REC_A fill:#238636,stroke:#3fb950,color:#fff
+    style EXHAUST fill:#da3633,stroke:#f85149,color:#fff
+    style SKIP_O fill:#9e6a03,stroke:#d29922,color:#fff
+    style SKIP_A fill:#9e6a03,stroke:#d29922,color:#fff
+    </pre>
+</div>
+
+<!-- DIAGRAM 5: Hallucination Guard Flow -->
+<div class="diagram-section">
+    <h3>5. Hallucination Guard — Fact-Check Pipeline</h3>
+    <p>Single LLM call extracts claims and verifies against research sources. Computes trust score from verified/total ratio.</p>
+    <pre class="mermaid">
+flowchart LR
+    subgraph INPUT["Input"]
+        GC["Generated Content<br/>(blog / LinkedIn)"]
+        SS["Research Sources<br/>(from Deep Research)"]
+    end
+
+    subgraph PIPELINE["Guard Pipeline"]
+        direction TB
+        EXTRACT["Extract Content<br/><i>_get_content_to_check()<br/>blog → title + body<br/>linkedin → post_text</i>"]
+        BUILD["Build Source Context<br/><i>Top 10 sources<br/>[Source N] title: snippet</i>"]
+        LLM["Single LLM Call<br/><i>generate_json()<br/>Extract claims +<br/>verify each</i>"]
+        PARSE["Parse Claims<br/><i>text, status, source_match,<br/>confidence</i>"]
+        SCORE["Compute Trust Score<br/><i>verified / total × 100</i>"]
+        EXTRACT --> BUILD --> LLM --> PARSE --> SCORE
+    end
+
+    subgraph OUTPUT["FactCheckResult"]
+        TS["trust_score: 0–100"]
+        TC["total_claims: N"]
+        VC["verified_claims: N"]
+        FC["flagged_claims: []<br/><i>unsupported +<br/>contradicted</i>"]
+        REC["recommendations: []"]
+    end
+
+    GC --> EXTRACT
+    SS --> BUILD
+    SCORE --> TS & TC & VC & FC & REC
+
+    style INPUT fill:#0d2137,stroke:#1f6feb,color:#c9d1d9
+    style PIPELINE fill:#2d1215,stroke:#da3633,color:#c9d1d9
+    style OUTPUT fill:#161b22,stroke:#d29922,color:#c9d1d9
+
+    style LLM fill:#da3633,stroke:#f85149,color:#fff
+    style SCORE fill:#da3633,stroke:#f85149,color:#fff
+    </pre>
+</div>
+
+<!-- DIAGRAM 6: Test & Eval Coverage -->
+<div class="diagram-section">
+    <h3>6. Test &amp; Evaluation Coverage</h3>
+    <p>220 tests across three tiers: unit tests for individual components, integration tests for workflows, and evals for system-level quality.</p>
+    <pre class="mermaid">
+flowchart TB
+    subgraph UNIT["Unit Tests (88 tests)"]
+        direction LR
+        T_CB["Circuit Breaker<br/>21 tests<br/><i>State transitions<br/>Registry, reset</i>"]
+        T_AGENTS["Agents<br/>30 tests<br/><i>Query handler, research<br/>blog, linkedin, image<br/>hallucination guard</i>"]
+        T_CORE["Core<br/>22 tests<br/><i>Config, state, conditions<br/>SEO, quality validator</i>"]
+        T_LLM["LLM Client<br/>8 tests<br/><i>Fallback chain<br/>JSON parsing</i>"]
+    end
+
+    subgraph INTEGRATION["Integration Tests (3 tests)"]
+        direction LR
+        T_BLOG["Blog Workflow<br/><i>Full pipeline:<br/>query → blog →<br/>fact check</i>"]
+        T_RESEARCH["Research Workflow<br/><i>Full pipeline:<br/>query → research →<br/>strategy</i>"]
+        T_FALLBACK["Fallback Chains<br/><i>OpenAI → Anthropic<br/>both fail</i>"]
+    end
+
+    subgraph EVALS["Evaluation Benchmarks (132 tests)"]
+        direction LR
+        E_INTENT["Intent Classification<br/>65 tests<br/><i>60 queries × 5 intents<br/>+ edge cases<br/>+ live LLM option</i>"]
+        E_WORKFLOW["Workflow Robustness<br/>24 tests<br/><i>20 E2E cases<br/>+ error recovery<br/>+ edge cases</i>"]
+        E_HALLUC["Hallucination Guard<br/>20 tests<br/><i>8 scenarios<br/>+ edge cases<br/>+ live LLM option</i>"]
+    end
+
+    subgraph DATA["Eval Datasets"]
+        direction LR
+        D_INTENT["intent_cases.json<br/><i>60 labeled queries</i>"]
+        D_WORKFLOW["workflow_cases.json<br/><i>20 E2E scenarios</i>"]
+        D_HALLUC["hallucination_cases.json<br/><i>8 fact-check scenarios</i>"]
+    end
+
+    E_INTENT --> D_INTENT
+    E_WORKFLOW --> D_WORKFLOW
+    E_HALLUC --> D_HALLUC
+
+    style UNIT fill:#0d2137,stroke:#1f6feb,color:#c9d1d9
+    style INTEGRATION fill:#0d2117,stroke:#238636,color:#c9d1d9
+    style EVALS fill:#2d1215,stroke:#da3633,color:#c9d1d9
+    style DATA fill:#161b22,stroke:#d29922,color:#c9d1d9
+    </pre>
+</div>
+
+<!-- DIAGRAM 7: Future Enhancements -->
+<div class="diagram-section">
+    <h3>7. Future Enhancements (Not Yet Implemented)</h3>
+    <p>Planned extensions to the core system. These are architectural blueprints — not currently built.</p>
+    <pre class="mermaid">
+flowchart TB
+    subgraph CURRENT["✅ Current System (Implemented)"]
+        direction LR
+        C_QH["Query Handler"]
+        C_DR["Deep Research"]
+        C_BW["Blog Writer"]
+        C_LW["LinkedIn Writer"]
+        C_IG["Image Generation"]
+        C_CS["Content Strategist"]
+        C_HG["Hallucination Guard"]
+    end
+
+    subgraph FUTURE["🚀 Planned Enhancements"]
+        MCG["📦 Multi-modal Campaign<br/>Generator<br/><i>Coordinated blog +<br/>LinkedIn + image</i>"]
+        ABV["🔬 A/B Variant Generator<br/><i>Hook rotation +<br/>engagement scoring</i>"]
+        BVE["🎭 Brand Voice Extraction<br/><i>Analyze existing content<br/>to learn voice profile</i>"]
+        CMS["📤 CMS Publishing<br/><i>WordPress, Ghost,<br/>Medium integration</i>"]
+        SCHED["📅 Social Scheduling<br/><i>Buffer, Hootsuite<br/>integration</i>"]
+    end
+
+    C_BW & C_LW & C_IG -.-> MCG
+    C_BW & C_LW -.-> ABV
+    BVE -.->|voice profile| C_BW & C_LW & C_CS
+    C_BW & C_LW -.-> CMS
+    C_LW -.-> SCHED
+
+    style CURRENT fill:#0d2137,stroke:#1f6feb,color:#c9d1d9
+    style FUTURE fill:#161b22,stroke:#30363d,color:#8b949e
+
+    style C_QH fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style C_DR fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style C_BW fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style C_LW fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style C_IG fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style C_CS fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style C_HG fill:#da3633,stroke:#f85149,color:#fff
+
+    style MCG fill:#30363d,stroke:#8b949e,color:#c9d1d9
+    style ABV fill:#30363d,stroke:#8b949e,color:#c9d1d9
+    style BVE fill:#30363d,stroke:#8b949e,color:#c9d1d9
+    style CMS fill:#30363d,stroke:#8b949e,color:#c9d1d9
+    style SCHED fill:#30363d,stroke:#8b949e,color:#c9d1d9
+    </pre>
+</div>
+
+</body>
+</html>

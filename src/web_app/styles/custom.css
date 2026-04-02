@@ -1,0 +1,35 @@
+/* ContentBlitz Custom Streamlit Styles */
+
+/* Main title */
+.main h1 {
+    color: #1a73e8;
+}
+
+/* Content preview tabs */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 8px;
+}
+
+.stTabs [data-baseweb="tab"] {
+    padding: 8px 16px;
+    border-radius: 8px 8px 0 0;
+}
+
+/* Metrics */
+[data-testid="stMetric"] {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid #e9ecef;
+}
+
+/* Chat messages */
+[data-testid="stChatMessage"] {
+    border-radius: 12px;
+    margin-bottom: 8px;
+}
+
+/* Download buttons */
+.stDownloadButton button {
+    width: 100%;
+}

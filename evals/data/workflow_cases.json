@@ -1,0 +1,162 @@
+[
+  {
+    "name": "blog_standard",
+    "query": "Write a blog post about AI in healthcare",
+    "expected_intent": "blog",
+    "expected_agents": ["query_handler", "deep_research", "seo_blog_writer", "hallucination_guard", "ab_variant_generator"],
+    "expected_outputs": ["blog_content", "fact_check_result", "research_results", "ab_variants"],
+    "unexpected_outputs": ["linkedin_content", "image_result"]
+  },
+  {
+    "name": "blog_seo_focus",
+    "query": "Create an SEO-optimized blog about cloud computing benefits",
+    "expected_intent": "blog",
+    "expected_agents": ["query_handler", "deep_research", "seo_blog_writer", "hallucination_guard", "ab_variant_generator"],
+    "expected_outputs": ["blog_content", "fact_check_result", "ab_variants"],
+    "unexpected_outputs": ["linkedin_content", "image_result"]
+  },
+  {
+    "name": "linkedin_standard",
+    "query": "Create a LinkedIn post about our AI product launch",
+    "expected_intent": "linkedin",
+    "expected_agents": ["query_handler", "deep_research", "linkedin_writer", "hallucination_guard", "ab_variant_generator"],
+    "expected_outputs": ["linkedin_content", "fact_check_result", "ab_variants"],
+    "unexpected_outputs": ["blog_content", "image_result"]
+  },
+  {
+    "name": "linkedin_thought_leadership",
+    "query": "Write a LinkedIn thought leadership post about the future of work",
+    "expected_intent": "linkedin",
+    "expected_agents": ["query_handler", "deep_research", "linkedin_writer", "hallucination_guard", "ab_variant_generator"],
+    "expected_outputs": ["linkedin_content", "fact_check_result", "ab_variants"],
+    "unexpected_outputs": ["blog_content", "image_result"]
+  },
+  {
+    "name": "research_standard",
+    "query": "Research quantum computing trends and developments",
+    "expected_intent": "research",
+    "expected_agents": ["query_handler", "deep_research", "content_strategist"],
+    "expected_outputs": ["research_results", "strategy_report"],
+    "unexpected_outputs": ["blog_content", "linkedin_content", "image_result"]
+  },
+  {
+    "name": "research_market",
+    "query": "Research the competitive landscape of EV battery manufacturers",
+    "expected_intent": "research",
+    "expected_agents": ["query_handler", "deep_research", "content_strategist"],
+    "expected_outputs": ["research_results", "strategy_report"],
+    "unexpected_outputs": ["blog_content", "linkedin_content"]
+  },
+  {
+    "name": "image_standard",
+    "query": "Generate an image for a cybersecurity blog header",
+    "expected_intent": "image",
+    "expected_agents": ["query_handler", "image_generation"],
+    "expected_outputs": ["image_result"],
+    "unexpected_outputs": ["blog_content", "linkedin_content", "strategy_report"]
+  },
+  {
+    "name": "image_abstract",
+    "query": "Create a visual representing artificial intelligence and data",
+    "expected_intent": "image",
+    "expected_agents": ["query_handler", "image_generation"],
+    "expected_outputs": ["image_result"],
+    "unexpected_outputs": ["blog_content", "linkedin_content"]
+  },
+  {
+    "name": "strategy_standard",
+    "query": "Build a content strategy for our SaaS product launch",
+    "expected_intent": "strategy",
+    "expected_agents": ["query_handler", "deep_research", "content_strategist"],
+    "expected_outputs": ["research_results", "strategy_report"],
+    "unexpected_outputs": ["blog_content", "linkedin_content", "image_result"]
+  },
+  {
+    "name": "strategy_campaign",
+    "query": "Create a content marketing plan for our developer relations program",
+    "expected_intent": "strategy",
+    "expected_agents": ["query_handler", "deep_research", "content_strategist"],
+    "expected_outputs": ["research_results", "strategy_report"],
+    "unexpected_outputs": ["blog_content", "linkedin_content"]
+  },
+  {
+    "name": "edge_minimal_query",
+    "query": "blog about AI",
+    "expected_intent": "blog",
+    "expected_agents": ["query_handler", "deep_research", "seo_blog_writer"],
+    "expected_outputs": ["blog_content"],
+    "unexpected_outputs": ["linkedin_content", "image_result"]
+  },
+  {
+    "name": "edge_vague_query",
+    "query": "Tell me about machine learning",
+    "expected_intent": "research",
+    "expected_agents": ["query_handler", "deep_research"],
+    "expected_outputs": ["research_results"],
+    "unexpected_outputs": ["image_result"]
+  },
+  {
+    "name": "edge_long_query",
+    "query": "I would like you to write a comprehensive, detailed, and well-researched blog post that covers all the major trends and developments in artificial intelligence as it applies to the healthcare and medical industry, including diagnostics, drug discovery, and patient care optimization",
+    "expected_intent": "blog",
+    "expected_agents": ["query_handler", "deep_research", "seo_blog_writer"],
+    "expected_outputs": ["blog_content"],
+    "unexpected_outputs": ["linkedin_content", "image_result"]
+  },
+  {
+    "name": "edge_special_characters",
+    "query": "Write a blog about C++ vs Rust — which is better for systems programming?",
+    "expected_intent": "blog",
+    "expected_agents": ["query_handler", "deep_research", "seo_blog_writer"],
+    "expected_outputs": ["blog_content"],
+    "unexpected_outputs": ["linkedin_content"]
+  },
+  {
+    "name": "blog_technical",
+    "query": "Write a technical blog post about Kubernetes security best practices",
+    "expected_intent": "blog",
+    "expected_agents": ["query_handler", "deep_research", "seo_blog_writer", "hallucination_guard", "ab_variant_generator"],
+    "expected_outputs": ["blog_content", "fact_check_result", "ab_variants"],
+    "unexpected_outputs": ["linkedin_content", "image_result"]
+  },
+  {
+    "name": "linkedin_announcement",
+    "query": "Draft a LinkedIn post announcing our Series B funding round",
+    "expected_intent": "linkedin",
+    "expected_agents": ["query_handler", "deep_research", "linkedin_writer"],
+    "expected_outputs": ["linkedin_content"],
+    "unexpected_outputs": ["blog_content", "image_result"]
+  },
+  {
+    "name": "research_technical",
+    "query": "Research WebAssembly adoption in production environments",
+    "expected_intent": "research",
+    "expected_agents": ["query_handler", "deep_research", "content_strategist"],
+    "expected_outputs": ["research_results", "strategy_report"],
+    "unexpected_outputs": ["blog_content", "linkedin_content"]
+  },
+  {
+    "name": "strategy_competitive",
+    "query": "Develop a competitive content strategy for B2B fintech marketing",
+    "expected_intent": "strategy",
+    "expected_agents": ["query_handler", "deep_research", "content_strategist"],
+    "expected_outputs": ["research_results", "strategy_report"],
+    "unexpected_outputs": ["blog_content", "linkedin_content"]
+  },
+  {
+    "name": "image_product",
+    "query": "Generate a product hero image for our AI analytics dashboard",
+    "expected_intent": "image",
+    "expected_agents": ["query_handler", "image_generation"],
+    "expected_outputs": ["image_result"],
+    "unexpected_outputs": ["blog_content", "linkedin_content"]
+  },
+  {
+    "name": "edge_ambiguous_intent",
+    "query": "Something about GPT and content creation",
+    "expected_intent": "research",
+    "expected_agents": ["query_handler", "deep_research"],
+    "expected_outputs": ["research_results"],
+    "unexpected_outputs": ["image_result"]
+  }
+]

@@ -1,0 +1,40 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.mypy_cache
+.ruff_cache
+htmlcov
+.coverage
+
+# Virtual environments
+.venv
+venv
+env
+
+# IDE
+.vscode
+.idea
+*.swp
+
+# Environment files (secrets injected via Secret Manager)
+.env
+.env.local
+
+# Tests and evals (not needed in production image)
+tests/
+evals/
+
+# Docs and deploy scripts
+docs/
+deploy/
+*.md
+
+# OS
+.DS_Store
+Thumbs.db

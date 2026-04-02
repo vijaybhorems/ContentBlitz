@@ -1,0 +1,87 @@
+[
+  {
+    "name": "all_claims_verified",
+    "description": "All claims are directly supported by sources",
+    "content": "AI is transforming healthcare diagnostics. Machine learning models can detect diseases from medical images with high accuracy. Hospitals are increasingly adopting AI-powered tools for patient triage.",
+    "sources": [
+      {"title": "AI in Healthcare Report", "snippet": "AI is transforming healthcare diagnostics by enabling faster and more accurate detection of diseases.", "url": "https://example.com/ai-health"},
+      {"title": "ML in Medical Imaging", "snippet": "Machine learning models can detect diseases from medical images with accuracy rates exceeding 90%.", "url": "https://example.com/ml-imaging"},
+      {"title": "Hospital AI Adoption", "snippet": "Hospitals are increasingly adopting AI-powered tools for patient triage and workflow optimization.", "url": "https://example.com/hospital-ai"}
+    ],
+    "expected_min_trust_score": 70,
+    "expected_max_flagged": 0
+  },
+  {
+    "name": "fabricated_statistics",
+    "description": "Content contains fabricated statistics not in any source",
+    "content": "According to a 2024 study, 97.3% of Fortune 500 companies have fully deployed AI systems. The global AI market reached $2.7 trillion in Q3 2024. AI reduces operational costs by exactly 83.2% on average.",
+    "sources": [
+      {"title": "AI Adoption Trends", "snippet": "Many large enterprises are exploring AI solutions for various business functions.", "url": "https://example.com/ai-trends"},
+      {"title": "AI Market Report", "snippet": "The AI market continues to grow, with estimates suggesting significant expansion in the coming years.", "url": "https://example.com/ai-market"}
+    ],
+    "expected_max_trust_score": 60,
+    "expected_min_flagged": 1
+  },
+  {
+    "name": "mixed_verified_and_unsupported",
+    "description": "Mix of real and fabricated claims",
+    "content": "Cloud computing adoption is growing rapidly across enterprises. AWS leads the cloud market with significant market share. Notably, quantum cloud services now account for 45% of all cloud revenue, and every major bank has migrated 100% of workloads to the cloud.",
+    "sources": [
+      {"title": "Cloud Computing Report", "snippet": "Cloud computing adoption is growing rapidly across enterprises of all sizes.", "url": "https://example.com/cloud"},
+      {"title": "Cloud Market Share", "snippet": "AWS leads the cloud infrastructure market with approximately 31% market share.", "url": "https://example.com/cloud-share"}
+    ],
+    "expected_max_trust_score": 80,
+    "expected_min_flagged": 1
+  },
+  {
+    "name": "contradicted_claims",
+    "description": "Claims that directly contradict the sources",
+    "content": "Python is declining in popularity and is rarely used in data science. Most developers prefer Assembly language for machine learning projects.",
+    "sources": [
+      {"title": "Programming Language Trends", "snippet": "Python continues to dominate as the most popular language for data science and machine learning.", "url": "https://example.com/python"},
+      {"title": "Developer Survey", "snippet": "Python remains the top choice for ML projects, with 85% of data scientists using it as their primary language.", "url": "https://example.com/survey"}
+    ],
+    "expected_max_trust_score": 40,
+    "expected_min_flagged": 1
+  },
+  {
+    "name": "no_sources_available",
+    "description": "Content exists but no research sources to verify against",
+    "content": "Blockchain technology is revolutionizing supply chain management by providing transparency and traceability.",
+    "sources": [],
+    "expected_max_trust_score": 60,
+    "expected_min_flagged": 0
+  },
+  {
+    "name": "subtle_exaggeration",
+    "description": "Claims that subtly exaggerate source material",
+    "content": "AI completely eliminates all diagnostic errors in hospitals. Every patient who receives AI-assisted care has better outcomes without exception.",
+    "sources": [
+      {"title": "AI Diagnostics Study", "snippet": "AI-assisted diagnostics can reduce certain types of diagnostic errors by up to 30% in clinical settings.", "url": "https://example.com/ai-diag"},
+      {"title": "Patient Outcomes", "snippet": "Studies show that AI-assisted care can improve patient outcomes in specific scenarios, though results vary by implementation.", "url": "https://example.com/outcomes"}
+    ],
+    "expected_max_trust_score": 50,
+    "expected_min_flagged": 1
+  },
+  {
+    "name": "vague_but_safe_claims",
+    "description": "Vague general claims that are hard to falsify",
+    "content": "Technology is changing the way we work. Companies are investing in digital transformation. The future of business involves more automation.",
+    "sources": [
+      {"title": "Digital Transformation", "snippet": "Organizations worldwide are investing heavily in digital transformation initiatives.", "url": "https://example.com/digital"}
+    ],
+    "expected_min_trust_score": 50,
+    "expected_max_flagged": 1
+  },
+  {
+    "name": "correct_attribution",
+    "description": "Claims correctly attributed to specific sources",
+    "content": "According to Gartner, 75% of enterprises will shift from piloting to operationalizing AI by 2024. McKinsey reports that AI could add $13 trillion to the global economy by 2030.",
+    "sources": [
+      {"title": "Gartner AI Forecast", "snippet": "Gartner predicts that 75% of enterprises will shift from piloting to operationalizing AI by 2024.", "url": "https://example.com/gartner"},
+      {"title": "McKinsey AI Impact", "snippet": "McKinsey estimates AI could add approximately $13 trillion to global economic output by 2030.", "url": "https://example.com/mckinsey"}
+    ],
+    "expected_min_trust_score": 70,
+    "expected_max_flagged": 0
+  }
+]
