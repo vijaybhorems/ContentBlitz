@@ -44,7 +44,13 @@ def main():
     result = asyncio.run(run_query(query))
 
     print("\n" + "=" * 60)
-    print(f"Intent: {result.get('intent')}")
+    intent = result.get("intent")
+    print(f"Intent: {intent}")
+
+    if intent == "rejected":
+        print(f"\n{result.get('rejection_message', 'Request could not be completed.')}")
+        return
+
     print(f"Topic: {result.get('target_topic')}")
     print(f"Processing: {' → '.join(result.get('processing_log', []))}")
 

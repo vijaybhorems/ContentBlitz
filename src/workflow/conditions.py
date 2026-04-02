@@ -8,8 +8,12 @@ def route_by_intent(state: ContentState) -> str:
 
     Intents that need research first (blog, linkedin, strategy) route to deep_research.
     Image routes directly to image_generation.
+    Rejected requests short-circuit to END.
     """
     intent = state.get("intent", "research")
+
+    if intent == "rejected":
+        return "__end__"
 
     if intent == "image":
         return "image_generation"

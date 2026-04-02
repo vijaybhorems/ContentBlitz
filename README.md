@@ -4,20 +4,41 @@ A production-grade multi-agent system that generates research reports, SEO blog 
 
 ## Architecture
 
+![Full System Architecture](docs/diagrams/01_full_system_architecture.png)
+
 ```
-START → Query Handler → [route by intent]
-  ├─ "research"  → Deep Research → Content Strategist → END
-  ├─ "blog"      → Deep Research → SEO Blog Writer → Hallucination Guard → A/B Variant Generator → END
-  ├─ "linkedin"  → Deep Research → LinkedIn Writer  → Hallucination Guard → A/B Variant Generator → END
-  ├─ "image"     → Image Generation → END
-  └─ "strategy"  → Deep Research → Content Strategist → END
+START → Query Handler
+          │
+          ├─[Content Safety Guardrail]
+          │   └─ UNSAFE → END  (graceful rejection message)
+          │
+          └─ SAFE → [route by intent]
+                ├─ "research"  → Deep Research → Content Strategist → END
+                ├─ "blog"      → Deep Research → SEO Blog Writer → Hallucination Guard → A/B Variant Generator → END
+                ├─ "linkedin"  → Deep Research → LinkedIn Writer  → Hallucination Guard → A/B Variant Generator → END
+                ├─ "image"     → Image Generation → END
+                └─ "strategy"  → Deep Research → Content Strategist → END
 ```
+
+### Content Safety Guardrail
+
+Every request passes through a safety pre-check inside the Query Handler **before** intent classification and before any downstream agent runs. The check uses a dedicated LLM call with a focused safety classifier prompt (`config/prompts/content_safety.txt`).
+
+Requests are rejected if they contain or solicit:
+- NSFW, pornographic, or explicit sexual content
+- Violence, gore, or graphic harm
+- Hate speech or discrimination
+- Instructions for illegal activities
+- Self-harm or suicide promotion
+- Content that sexualises minors
+
+Rejected requests short-circuit the entire workflow and return a graceful, user-facing message — no research, content generation, or image creation is triggered. Legitimate but sensitive topics (medical, legal, political research, regulated industries) are intentionally **not** blocked.
 
 ### Agents
 
 | Agent | Purpose |
 |---|---|
-| **Query Handler** | Intent classification into 5 categories (blog, linkedin, research, image, strategy) + structured routing |
+| **Query Handler** | Content safety pre-check, then intent classification into 5 categories (blog, linkedin, research, image, strategy) + structured routing |
 | **Deep Research** | Multi-query Tavily search, URL deduplication, LLM synthesis with key findings |
 | **SEO Blog Writer** | 1200–1800 word SEO-optimized blog posts with keyword integration and heading structure |
 | **LinkedIn Writer** | Engagement-optimized professional posts with hook types, hashtags, and CTA |
@@ -157,7 +178,7 @@ contentblitz/
 │       ├── components/      # Sidebar, chat, content preview, research panel
 │       └── styles/custom.css
 ├── config/
-│   ├── prompts/             # 8 externalized system prompts (one per agent)
+│   ├── prompts/             # 9 externalized system prompts (one per agent + content_safety)
 │   └── settings.yaml        # Default configuration values
 ├── tests/                   # 99 unit + integration tests
 │   ├── unit/                # 14 test files (agents, core, utils, circuit breaker)
@@ -234,15 +255,16 @@ pytest tests/ evals/ -v
 
 ## Key Design Decisions
 
-1. **LLM Fallback Chain**: OpenAI → Anthropic automatic failover with structured logging of fallback events
-2. **Circuit Breaker per Provider**: Prevents cascading failures. 5-failure threshold opens the circuit; 60-second recovery timeout probes with a single request before closing. Shared registry across all clients
-3. **Image Fallback**: DALL-E 3 → Stability AI with same prompt. Content policy violations don't trip the breaker
-4. **Externalized Prompts**: System prompts in `config/prompts/` for easy tuning without code changes
-5. **Hallucination Guard**: Closed-loop verification — extracts factual claims from generated content, verifies each against the research sources that produced it, returns trust score + flagged claims
-6. **Sequential Workflow**: Agents run sequentially through LangGraph for simplicity and debuggability. Each writes to its own state key with no conflicts
-7. **Structured Logging**: structlog with JSON output in production for log aggregation, colored console in development. Every agent logs start/complete/error with timing
-8. **Typed State**: `ContentState` is a `TypedDict` with `Annotated` fields and custom reducers for list merging (errors, processing_log)
-9. **Pydantic Models**: 10 typed output models ensure structured data flows between agents without runtime type errors
+1. **Content Safety Guardrail**: LLM-based safety pre-check fires inside the Query Handler before any other agent runs. Unsafe requests short-circuit the graph immediately with a graceful rejection message — zero downstream API calls are made. The classifier prompt (`config/prompts/content_safety.txt`) is externalized for easy tuning
+2. **LLM Fallback Chain**: OpenAI → Anthropic automatic failover with structured logging of fallback events
+3. **Circuit Breaker per Provider**: Prevents cascading failures. 5-failure threshold opens the circuit; 60-second recovery timeout probes with a single request before closing. Shared registry across all clients
+4. **Image Fallback**: DALL-E 3 → Stability AI with same prompt. Content policy violations don't trip the breaker
+5. **Externalized Prompts**: System prompts in `config/prompts/` for easy tuning without code changes
+6. **Hallucination Guard**: Closed-loop verification — extracts factual claims from generated content, verifies each against the research sources that produced it, returns trust score + flagged claims
+7. **Sequential Workflow**: Agents run sequentially through LangGraph for simplicity and debuggability. Each writes to its own state key with no conflicts
+8. **Structured Logging**: structlog with JSON output in production for log aggregation, colored console in development. Every agent logs start/complete/error with timing
+9. **Typed State**: `ContentState` is a `TypedDict` with `Annotated` fields and custom reducers for list merging (errors, processing_log)
+10. **Pydantic Models**: 10 typed output models ensure structured data flows between agents without runtime type errors
 
 ## Evaluation Criteria Coverage
 

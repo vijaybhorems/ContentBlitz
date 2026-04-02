@@ -113,30 +113,40 @@ def main():
                         result = _run_workflow(user_input, settings)
                         st.session_state.last_result = result
 
-                        # Build summary response
                         intent = result.get("intent", "unknown")
-                        topic = result.get("target_topic", "")
-                        log = result.get("processing_log", [])
 
-                        summary = f"**{intent.title()}** content generated for *{topic}*\n\n"
-                        summary += f"Pipeline: {' → '.join(log)}\n\n"
+                        # Graceful rejection for unsafe/inappropriate requests
+                        if intent == "rejected":
+                            rejection_msg = result.get(
+                                "rejection_message",
+                                "This request cannot be completed as it falls outside acceptable use guidelines.",
+                            )
+                            st.warning(rejection_msg)
+                            add_assistant_message(rejection_msg)
+                        else:
+                            # Build summary response
+                            topic = result.get("target_topic", "")
+                            log = result.get("processing_log", [])
 
-                        if result.get("blog_content"):
-                            summary += f"📝 **Blog:** {result['blog_content'].title} ({result['blog_content'].word_count} words)\n\n"
-                        if result.get("linkedin_content"):
-                            summary += f"💼 **LinkedIn:** {result['linkedin_content'].character_count} chars ({result['linkedin_content'].hook_type} hook)\n\n"
-                        if result.get("image_result"):
-                            summary += f"🎨 **Image:** Generated via {result['image_result'].provider}\n\n"
-                        if result.get("strategy_report"):
-                            summary += f"📊 **Strategy:** {result['strategy_report'].title}\n\n"
-                        if result.get("fact_check_result"):
-                            fc = result["fact_check_result"]
-                            summary += f"🛡️ **Trust Score:** {fc.trust_score}/100 ({fc.verified_claims}/{fc.total_claims} claims verified)\n\n"
-                        if result.get("errors"):
-                            summary += f"⚠️ **Errors:** {len(result['errors'])} issues encountered\n"
+                            summary = f"**{intent.title()}** content generated for *{topic}*\n\n"
+                            summary += f"Pipeline: {' → '.join(log)}\n\n"
 
-                        st.markdown(summary)
-                        add_assistant_message(summary)
+                            if result.get("blog_content"):
+                                summary += f"📝 **Blog:** {result['blog_content'].title} ({result['blog_content'].word_count} words)\n\n"
+                            if result.get("linkedin_content"):
+                                summary += f"💼 **LinkedIn:** {result['linkedin_content'].character_count} chars ({result['linkedin_content'].hook_type} hook)\n\n"
+                            if result.get("image_result"):
+                                summary += f"🎨 **Image:** Generated via {result['image_result'].provider}\n\n"
+                            if result.get("strategy_report"):
+                                summary += f"📊 **Strategy:** {result['strategy_report'].title}\n\n"
+                            if result.get("fact_check_result"):
+                                fc = result["fact_check_result"]
+                                summary += f"🛡️ **Trust Score:** {fc.trust_score}/100 ({fc.verified_claims}/{fc.total_claims} claims verified)\n\n"
+                            if result.get("errors"):
+                                summary += f"⚠️ **Errors:** {len(result['errors'])} issues encountered\n"
+
+                            st.markdown(summary)
+                            add_assistant_message(summary)
 
                     except Exception as e:
                         error_msg = f"Error: {e}"

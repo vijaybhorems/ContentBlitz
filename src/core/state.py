@@ -29,9 +29,10 @@ class ContentState(TypedDict, total=False):
     conversation_history: list[dict]
 
     # --- Routing (set by query_handler) ---
-    intent: str  # research | blog | linkedin | image | strategy
+    intent: str  # research | blog | linkedin | image | strategy | rejected
     target_topic: str
     target_keywords: list[str]
+    rejection_message: str  # set when intent == "rejected"
 
     # --- Research (set by deep_research) ---
     research_results: ResearchResult
