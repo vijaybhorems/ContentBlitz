@@ -143,6 +143,7 @@ def build_graph(
         {
             "deep_research": "deep_research",
             "image_generation": "image_generation",
+            "__end__": END,
         },
     )
 
