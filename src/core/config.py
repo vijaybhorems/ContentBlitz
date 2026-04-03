@@ -45,6 +45,13 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     redis_url: Optional[str] = None
 
+    # OAuth — Google Identity (leave blank to disable auth gate in development)
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    # Full URL Google redirects back to, e.g. https://your-service.run.app/
+    # Must match an "Authorized redirect URI" in the Google Cloud Console OAuth client.
+    oauth_redirect_uri: str = "http://localhost:8501/"
+
     # Timeouts and Retries
     api_timeout: float = 60.0
     max_retries: int = 3
@@ -60,6 +67,11 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         """Return True when ``environment`` is ``production``."""
         return self.environment == "production"
+
+    @property
+    def oauth_enabled(self) -> bool:
+        """Return True when Google OAuth credentials are configured."""
+        return bool(self.google_client_id and self.google_client_secret)
 
     def get_prompt_path(self, agent_name: str) -> Path:
         """Return the path to ``config/prompts/{agent_name}.txt``."""

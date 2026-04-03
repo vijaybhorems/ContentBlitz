@@ -8,6 +8,7 @@ import streamlit as st
 
 from src.core.config import Settings, get_settings
 from src.utils.logging_config import setup_logging
+from src.web_app.auth import GoogleOAuthHandler
 from src.web_app.components.chat_interface import (
     add_assistant_message,
     add_user_message,
@@ -15,6 +16,7 @@ from src.web_app.components.chat_interface import (
     render_chat_input,
 )
 from src.web_app.components.content_preview import render_content_preview
+from src.web_app.components.login import render_login_page, render_user_badge
 from src.web_app.components.research_panel import render_research_sidebar
 from src.web_app.components.sidebar import render_sidebar
 from src.workflow.graph import build_graph
@@ -81,8 +83,80 @@ def _run_workflow(query: str, settings: Settings) -> dict:
     return result
 
 
+def _get_oauth_handler(settings: Settings) -> GoogleOAuthHandler | None:
+    """Return a configured OAuth handler, or None when OAuth is disabled."""
+    if not settings.oauth_enabled:
+        return None
+    return GoogleOAuthHandler(
+        client_id=settings.google_client_id,
+        client_secret=settings.google_client_secret,
+        redirect_uri=settings.oauth_redirect_uri,
+    )
+
+
+def _handle_auth(settings: Settings) -> bool:
+    """Run the auth gate. Returns True when the user is allowed to proceed.
+
+    - If OAuth is not configured (dev mode), always returns True.
+    - If a valid user is already in session state, returns True.
+    - If Google redirected back with ``?code=`` query params, exchanges
+      the code, stores the user, and returns True.
+    - Otherwise renders the login page and returns False (halts main()).
+    """
+    oauth = _get_oauth_handler(settings)
+    if oauth is None:
+        return True  # Auth disabled — open access
+
+    # Already authenticated?
+    if GoogleOAuthHandler.get_current_user():
+        return True
+
+    # Callback from Google? (query params contain code + state)
+    params = st.query_params
+    code = params.get("code")
+    state = params.get("state")
+
+    if code and state:
+        with st.spinner("Signing you in…"):
+            user, error_reason = oauth.handle_callback(code, state)
+
+        # Clear OAuth params from the URL regardless of outcome
+        st.query_params.clear()
+
+        if user:
+            GoogleOAuthHandler.set_user(user)
+            st.rerun()
+            return True  # rerun will re-enter with user set
+        else:
+            st.error("Sign-in failed — see details below.")
+            with st.expander("Error details", expanded=True):
+                st.markdown(error_reason or "Unknown error — check server logs.")
+                st.markdown("---")
+                st.markdown(
+                    f"**Redirect URI the app is using:** `{settings.oauth_redirect_uri}`\n\n"
+                    "This must be added exactly (including trailing slash) to "
+                    "**Authorized redirect URIs** in "
+                    "[Google Cloud Console → Credentials]"
+                    "(https://console.cloud.google.com/apis/credentials)."
+                )
+
+    # Not authenticated — show login page
+    render_login_page(oauth)
+    return False
+
+
 def main():
     _init_session_state()
+    settings = get_settings()
+
+    # ── Auth gate ─────────────────────────────────────────────────────────────
+    if not _handle_auth(settings):
+        return  # Login page already rendered; stop here
+
+    # ── Authenticated — render user badge in sidebar ──────────────────────────
+    user = GoogleOAuthHandler.get_current_user()
+    if user:
+        render_user_badge(user)
 
     # Sidebar
     sidebar_config = render_sidebar()
@@ -107,8 +181,6 @@ def main():
 
             with st.chat_message("assistant"):
                 with st.spinner("Processing your request..."):
-                    settings = get_settings()
-
                     try:
                         result = _run_workflow(user_input, settings)
                         st.session_state.last_result = result
