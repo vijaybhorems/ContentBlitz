@@ -31,3 +31,11 @@ export REDIS_INSTANCE="contentblitz-redis"
 export REDIS_TIER="BASIC"               # BASIC (no HA) or STANDARD_HA
 export REDIS_SIZE_GB="1"
 export REDIS_VERSION="redis_7_0"
+
+# Google OAuth — Secret Manager secret names
+# Store values with: gcloud secrets create <name> --data-file=-
+export OAUTH_CLIENT_ID_SECRET="contentblitz-google-client-id"
+export OAUTH_CLIENT_SECRET_SECRET="contentblitz-google-client-secret"
+# Public redirect URI (not secret — passed as plain env var)
+export OAUTH_REDIRECT_URI="https://$(gcloud run services describe contentblitz \
+    --region="${GCP_REGION}" --format='value(status.url)' 2>/dev/null | sed 's|https://||')/"
