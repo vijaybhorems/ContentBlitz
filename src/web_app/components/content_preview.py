@@ -4,6 +4,7 @@ import base64
 
 import streamlit as st
 
+from src.core.config import get_settings
 from src.utils.content_optimizer import calculate_seo_score, estimate_reading_time
 
 
@@ -90,13 +91,30 @@ def _render_blog(blog, keywords: list):
     st.divider()
     st.markdown(blog.body_markdown)
 
-    # Copy button
-    st.download_button(
-        "Download as Markdown",
-        data=f"# {blog.title}\n\n{blog.body_markdown}",
-        file_name="blog_post.md",
-        mime="text/markdown",
-    )
+    # Action buttons
+    settings = get_settings()
+    num_btns = 1 + int(settings.squarespace_enabled) + int(settings.ghost_enabled)
+    btn_cols = st.columns(num_btns)
+    col_idx = 0
+
+    with btn_cols[col_idx]:
+        st.download_button(
+            "Download as Markdown",
+            data=f"# {blog.title}\n\n{blog.body_markdown}",
+            file_name="blog_post.md",
+            mime="text/markdown",
+        )
+    col_idx += 1
+
+    if settings.squarespace_enabled:
+        with btn_cols[col_idx]:
+            _render_squarespace_publish_button(blog, keywords)
+        col_idx += 1
+
+    if settings.ghost_enabled:
+        with btn_cols[col_idx]:
+            _render_ghost_publish_button(blog, keywords)
+        col_idx += 1
 
 
 def _render_linkedin(li):
@@ -260,3 +278,101 @@ def _render_ab_variants(ab):
             rows.append(row)
         df = pd.DataFrame(rows)
         st.dataframe(df, use_container_width=True, hide_index=True)
+
+
+# ── Squarespace publish button ────────────────────────────────────────────────
+
+def _render_squarespace_publish_button(blog, keywords: list) -> None:
+    """Render a 'Publish to Squarespace' button."""
+    settings = get_settings()
+
+    publish_key = f"_sq_published_{hash(blog.title)}"
+
+    if st.session_state.get(publish_key):
+        st.success("Published to Squarespace!")
+        return
+
+    draft_mode = st.checkbox("Draft", value=True, key=f"_sq_draft_{hash(blog.title)}")
+
+    if st.button("Publish to News", use_container_width=True):
+        from src.integrations.squarespace_client import SquarespaceClient, SquarespacePublishError
+
+        client = SquarespaceClient(
+            api_key=settings.squarespace_api_key,
+            site_url=settings.squarespace_site_url,
+            blog_collection_id=settings.squarespace_blog_collection_id,
+        )
+
+        with st.spinner("Publishing to Squarespace…"):
+            try:
+                result = client.publish_blog_post(
+                    title=blog.title,
+                    body_markdown=blog.body_markdown,
+                    tags=keywords[:5] if keywords else [],
+                    meta_description=getattr(blog, "meta_description", ""),
+                    is_draft=draft_mode,
+                )
+                st.session_state[publish_key] = True
+                status_label = "Draft saved" if draft_mode else "Published"
+                st.success(
+                    f"**{status_label}!** "
+                    f"[Open post]({result.get('url', settings.squarespace_site_url + '/news')})"
+                )
+                st.balloons()
+            except SquarespacePublishError as exc:
+                st.error(f"Publish failed: {exc}")
+                if exc.detail:
+                    with st.expander("Error details", expanded=True):
+                        st.markdown(exc.detail)
+
+
+def _render_ghost_publish_button(blog, keywords: list) -> None:
+    """Render a 'Publish to Ghost' button."""
+    settings = get_settings()
+
+    publish_key = f"_ghost_published_{hash(blog.title)}"
+
+    if st.session_state.get(publish_key):
+        url = st.session_state.get(f"{publish_key}_url", "")
+        st.success(f"Published to Ghost! [Open post]({url})" if url else "Published to Ghost!")
+        return
+
+    draft_mode = st.checkbox("Draft", value=True, key=f"_ghost_draft_{hash(blog.title)}")
+
+    if st.button("Publish to Ghost", type="primary", use_container_width=True):
+        from src.integrations.ghost_client import GhostClient, GhostPublishError
+
+        try:
+            client = GhostClient(
+                api_url=settings.ghost_api_url,
+                admin_api_key=settings.ghost_admin_api_key,
+            )
+        except GhostPublishError as exc:
+            st.error(f"Config error: {exc}")
+            if exc.detail:
+                st.markdown(exc.detail)
+            return
+
+        with st.spinner("Publishing to Ghost…"):
+            try:
+                result = client.publish_blog_post(
+                    title=blog.title,
+                    body_markdown=blog.body_markdown,
+                    tags=keywords[:5] if keywords else [],
+                    meta_description=getattr(blog, "meta_description", ""),
+                    is_draft=draft_mode,
+                )
+                st.session_state[publish_key] = True
+                post_url = result.get("url", "")
+                st.session_state[f"{publish_key}_url"] = post_url
+                status_label = "Draft saved" if draft_mode else "Published"
+                msg = f"**{status_label}!**"
+                if post_url:
+                    msg += f" [Open post]({post_url})"
+                st.success(msg)
+                st.balloons()
+            except GhostPublishError as exc:
+                st.error(f"Publish failed: {exc}")
+                if exc.detail:
+                    with st.expander("Error details", expanded=True):
+                        st.markdown(exc.detail)

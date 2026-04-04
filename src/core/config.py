@@ -53,6 +53,15 @@ class Settings(BaseSettings):
     # Must match an "Authorized redirect URI" in the Google Cloud Console OAuth client.
     oauth_redirect_uri: str = "http://localhost:8501/"
 
+    # Squarespace Blog Publishing (leave blank to hide the "Publish" button)
+    squarespace_api_key: str = ""
+    squarespace_site_url: str = ""
+    squarespace_blog_collection_id: str = ""
+
+    # Ghost Blog Publishing (leave blank to hide the "Publish to Ghost" button)
+    ghost_admin_api_key: str = ""  # format: id:secret
+    ghost_api_url: str = "https://the-algorithmic-lens.ghost.io"
+
     # Timeouts and Retries
     api_timeout: float = 60.0
     max_retries: int = 3
@@ -73,6 +82,16 @@ class Settings(BaseSettings):
     def oauth_enabled(self) -> bool:
         """Return True when Google OAuth credentials are configured."""
         return bool(self.google_client_id and self.google_client_secret)
+
+    @property
+    def squarespace_enabled(self) -> bool:
+        """Return True when Squarespace publishing credentials are configured."""
+        return bool(self.squarespace_api_key and self.squarespace_blog_collection_id)
+
+    @property
+    def ghost_enabled(self) -> bool:
+        """Return True when Ghost publishing credentials are configured."""
+        return bool(self.ghost_admin_api_key and self.ghost_api_url)
 
     def get_prompt_path(self, agent_name: str) -> Path:
         """Return the path to ``config/prompts/{agent_name}.txt``."""
