@@ -43,7 +43,7 @@ class HallucinationGuardAgent(BaseAgent):
             f"Extract all factual claims from the content and verify each one against the research sources."
         )
 
-        result = await self.llm.generate_json(messages)
+        result = await self.llm.generate_json_fast(messages)
 
         # Parse claims
         claims = []

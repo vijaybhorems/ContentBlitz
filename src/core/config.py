@@ -26,7 +26,8 @@ class Settings(BaseSettings):
     stability_api_key: str = ""
 
     # LLM Configuration
-    openai_model: str = "gpt-4o"
+    openai_model: str = "gpt-4o"                        # used for content generation
+    openai_model_fast: str = "gpt-4o-mini"              # used for routing, safety, QA
     anthropic_model: str = "claude-sonnet-4-20250514"
     llm_temperature: float = 0.7
     llm_max_tokens: int = 4096

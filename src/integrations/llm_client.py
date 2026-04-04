@@ -244,3 +244,20 @@ class LLMClient:
                 return json.loads(content)
             except json.JSONDecodeError as e:
                 raise LLMError(response.provider, f"Invalid JSON response: {e}")
+
+    async def generate_json_fast(
+        self,
+        messages: list[dict[str, str]],
+        **kwargs: Any,
+    ) -> dict:
+        """Like generate_json() but forces the fast/cheap model (gpt-4o-mini).
+
+        Use for lightweight tasks: intent classification, safety checks,
+        fact verification, A/B scoring — anything that doesn't need frontier
+        model quality. Typically 5-10x faster and cheaper than generate_json().
+        """
+        return await self.generate_json(
+            messages,
+            model=self.settings.openai_model_fast,
+            **kwargs,
+        )

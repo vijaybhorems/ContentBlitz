@@ -1,5 +1,6 @@
 """Tavily AI search client for web research."""
 
+import asyncio
 from typing import Any
 
 from tavily import AsyncTavilyClient
@@ -85,7 +86,10 @@ class TavilySearchClient:
         return sources
 
     async def search_multiple(self, queries: list[str], **kwargs: Any) -> list[Source]:
-        """Execute multiple searches and deduplicate results.
+        """Execute multiple searches in parallel and deduplicate results.
+
+        All queries are fired concurrently with asyncio.gather() instead of
+        sequentially, cutting research latency from O(n) to O(1) wall-clock time.
 
         Args:
             queries: List of search queries.
@@ -94,11 +98,15 @@ class TavilySearchClient:
         Returns:
             Deduplicated list of Source objects, sorted by relevance.
         """
+        # Run all searches concurrently
+        results_per_query: list[list[Source]] = await asyncio.gather(
+            *[self.search(query, **kwargs) for query in queries]
+        )
+
+        # Deduplicate by URL while preserving relevance order
         all_sources: list[Source] = []
         seen_urls: set[str] = set()
-
-        for query in queries:
-            sources = await self.search(query, **kwargs)
+        for sources in results_per_query:
             for source in sources:
                 if source.url not in seen_urls:
                     seen_urls.add(source.url)
