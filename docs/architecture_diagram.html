@@ -119,14 +119,15 @@
 <body>
 
 <h1>ContentBlitz — Multi-Agent Content Marketing System</h1>
-<h2>Production Architecture &bull; 8 Agents &bull; 231 Tests &bull; Circuit Breakers &bull; A/B Testing</h2>
+<h2>Production Architecture &bull; 8 Agents &bull; 231 Tests &bull; Circuit Breakers &bull; A/B Testing &bull; CMS Publishing</h2>
 
 <div class="stats">
     <div class="stat-card"><div class="number">8</div><div class="label">Specialized Agents</div></div>
-    <div class="stat-card"><div class="number">5</div><div class="label">External APIs</div></div>
+    <div class="stat-card"><div class="number">7</div><div class="label">External APIs</div></div>
     <div class="stat-card"><div class="number">231</div><div class="label">Tests + Evals</div></div>
-    <div class="stat-card"><div class="number">~3,200</div><div class="label">Lines of Code</div></div>
+    <div class="stat-card"><div class="number">~4,300</div><div class="label">Lines of Code</div></div>
     <div class="stat-card"><div class="number">5</div><div class="label">Circuit Breakers</div></div>
+    <div class="stat-card"><div class="number">2</div><div class="label">CMS Integrations</div></div>
 </div>
 
 <div class="legend">
@@ -135,20 +136,27 @@
     <div class="legend-item"><div class="legend-color" style="background:#238636"></div> External APIs</div>
     <div class="legend-item"><div class="legend-color" style="background:#d29922"></div> State &amp; Resilience</div>
     <div class="legend-item"><div class="legend-color" style="background:#a371f7"></div> UI Layer</div>
+    <div class="legend-item"><div class="legend-color" style="background:#3fb950"></div> Publishing &amp; Auth</div>
 </div>
 
 <!-- DIAGRAM 1: Implemented System Architecture -->
 <div class="diagram-section">
     <h3>1. System Architecture (Implemented)</h3>
-    <p>Complete data flow from user input through LangGraph orchestration to output. All components shown are implemented and tested.</p>
+    <p>Complete data flow from user input through LangGraph orchestration to content output and CMS publishing. All components shown are implemented and tested.</p>
     <pre class="mermaid">
 flowchart TB
-    subgraph UI["🖥️ Streamlit Web Interface"]
-        CHAT["💬 Chat Interface<br/><i>Message history<br/>+ processing log</i>"]
-        PREVIEW["📄 Content Preview<br/><i>Tabbed: Blog | LinkedIn<br/>Image | Strategy | Fact Check</i>"]
-        SIDEBAR["⚙️ Sidebar<br/><i>API status indicators<br/>+ settings</i>"]
+    subgraph AUTH["🔐 Authentication"]
+        OAUTH["Google OAuth<br/><i>SSO login gate<br/>production only</i>"]
     end
 
+    subgraph UI["🖥️ Streamlit Web Interface"]
+        CHAT["💬 Chat Interface<br/><i>Message history<br/>+ processing log</i>"]
+        PREVIEW["📄 Content Preview<br/><i>Tabbed: Blog | LinkedIn | Image<br/>Strategy | Fact Check | A/B Variants<br/>| Research</i>"]
+        SIDEBAR["⚙️ Sidebar<br/><i>API status indicators<br/>+ settings</i>"]
+        RESEARCH_PANEL["🔍 Research Panel<br/><i>Sources &amp; findings<br/>sidebar display</i>"]
+    end
+
+    OAUTH --> CHAT
     CHAT --> QH
 
     subgraph ORCHESTRATOR["🧠 LangGraph Orchestration"]
@@ -157,7 +165,9 @@ flowchart TB
         COND1["route_by_intent()"]
         COND2["route_after_research()"]
         COND3["route_after_content()"]
+        CHECKPOINT["💾 Checkpointer<br/><i>Redis (prod)<br/>Memory (dev)</i>"]
         QH --> COND1
+        STATE --- CHECKPOINT
     end
 
     subgraph AGENTS["⚙️ Content Generation Agents"]
@@ -173,6 +183,12 @@ flowchart TB
         ABV["🔬 A/B Variant<br/>Generator<br/><i>3-5 hook variants<br/>+ 5-dim scoring</i>"]
         SEO["📈 SEO Scorer<br/><i>7-factor scoring<br/>100-point scale</i>"]
         QV["✅ Quality<br/>Validator<br/><i>Length, structure<br/>readability checks</i>"]
+    end
+
+    subgraph PUBLISHING["📤 CMS Publishing"]
+        GHOST["👻 Ghost CMS<br/><i>Admin API + JWT<br/>Draft / Publish</i>"]
+        SQSP["🟧 Squarespace<br/><i>Blog API<br/>Draft / Publish</i>"]
+        DL["📥 Download<br/><i>Markdown export</i>"]
     end
 
     subgraph RESILIENCE["🔒 Resilience Layer"]
@@ -192,6 +208,8 @@ flowchart TB
         TAVILY["Tavily AI<br/><i>Web search</i>"]
         DALLE["DALL-E 3<br/><i>Primary images</i>"]
         STABILITY["Stability AI<br/>SDXL<br/><i>Fallback images</i>"]
+        WIKI["Wikipedia<br/><i>Knowledge base</i>"]
+        GHOST_API["Ghost<br/>Admin API<br/><i>Blog publishing</i>"]
     end
 
     COND1 -->|blog/linkedin/research/strategy| RA
@@ -207,22 +225,30 @@ flowchart TB
 
     ABV & CS & IMG --> PREVIEW
     BLOG & LI --> PREVIEW
+    RA --> RESEARCH_PANEL
 
-    RA --> TAVILY
+    BLOG --> GHOST & SQSP & DL
+    LI --> DL
+
+    RA --> TAVILY & WIKI
     BLOG & LI & CS & HG & QH --> OPENAI
     OPENAI -.->|fallback| ANTHROPIC
     IMG --> DALLE
     DALLE -.->|fallback| STABILITY
+    GHOST --> GHOST_API
 
     CB_REG -.-> OPENAI & ANTHROPIC & TAVILY & DALLE & STABILITY
 
+    style AUTH fill:#0d2117,stroke:#3fb950,color:#c9d1d9
     style UI fill:#1c1030,stroke:#a371f7,color:#c9d1d9
     style ORCHESTRATOR fill:#0d2137,stroke:#1f6feb,color:#c9d1d9
     style AGENTS fill:#0d2137,stroke:#1f6feb,color:#c9d1d9
     style GUARD fill:#2d1215,stroke:#da3633,color:#c9d1d9
+    style PUBLISHING fill:#0d2117,stroke:#3fb950,color:#c9d1d9
     style RESILIENCE fill:#261c00,stroke:#d29922,color:#c9d1d9
     style APIS fill:#0d2117,stroke:#238636,color:#c9d1d9
 
+    style OAUTH fill:#238636,stroke:#3fb950,color:#fff
     style QH fill:#1f6feb,stroke:#58a6ff,color:#fff
     style RA fill:#1f6feb,stroke:#58a6ff,color:#fff
     style BLOG fill:#1f6feb,stroke:#58a6ff,color:#fff
@@ -233,6 +259,10 @@ flowchart TB
     style ABV fill:#da3633,stroke:#f85149,color:#fff
     style CB_REG fill:#9e6a03,stroke:#d29922,color:#fff
     style STATE fill:#9e6a03,stroke:#d29922,color:#fff
+    style CHECKPOINT fill:#9e6a03,stroke:#d29922,color:#fff
+    style GHOST fill:#238636,stroke:#3fb950,color:#fff
+    style SQSP fill:#238636,stroke:#3fb950,color:#fff
+    style DL fill:#238636,stroke:#3fb950,color:#fff
     </pre>
 </div>
 
@@ -386,10 +416,71 @@ flowchart LR
     </pre>
 </div>
 
-<!-- DIAGRAM 6: Test & Eval Coverage -->
+<!-- DIAGRAM 6: CMS Publishing Pipeline -->
 <div class="diagram-section">
-    <h3>6. Test &amp; Evaluation Coverage</h3>
-    <p>220 tests across three tiers: unit tests for individual components, integration tests for workflows, and evals for system-level quality.</p>
+    <h3>6. CMS Publishing Pipeline</h3>
+    <p>Blog posts can be published directly to Ghost CMS or Squarespace, or downloaded as Markdown. Ghost uses JWT-authenticated Admin API; Squarespace uses Bearer token auth.</p>
+    <pre class="mermaid">
+flowchart LR
+    subgraph CONTENT["Generated Content"]
+        BLOG_C["📝 Blog Post<br/><i>title + body_markdown<br/>+ meta_description<br/>+ keywords</i>"]
+    end
+
+    subgraph BUTTONS["UI Action Buttons"]
+        direction TB
+        BTN_DL["📥 Download<br/>Markdown"]
+        BTN_GHOST["👻 Publish<br/>to Ghost"]
+        BTN_SQSP["🟧 Publish<br/>to Squarespace"]
+        DRAFT["☑️ Draft Mode<br/><i>checkbox toggle</i>"]
+    end
+
+    subgraph GHOST_FLOW["Ghost Publishing"]
+        direction TB
+        G_JWT["Generate JWT<br/><i>HS256, 5min TTL<br/>kid = key_id</i>"]
+        G_HTML["Markdown → HTML<br/><i>python-markdown<br/>+ extensions</i>"]
+        G_WRAP["Wrap in kg-card<br/><i>Ghost editor<br/>compatibility</i>"]
+        G_POST["POST /ghost/api/<br/>admin/posts/<br/><i>?source=html</i>"]
+        G_JWT --> G_POST
+        G_HTML --> G_WRAP --> G_POST
+    end
+
+    subgraph SQSP_FLOW["Squarespace Publishing"]
+        direction TB
+        S_HTML["Markdown → HTML"]
+        S_POST["POST /api/pages/<br/><i>Bearer token auth</i>"]
+        S_HTML --> S_POST
+    end
+
+    subgraph RESULT["Result"]
+        SUCCESS["✅ Published!<br/><i>Link to post</i>"]
+        ERROR["❌ Error<br/><i>Detailed message<br/>+ fix suggestions</i>"]
+    end
+
+    BLOG_C --> BTN_DL & BTN_GHOST & BTN_SQSP
+    DRAFT --> BTN_GHOST & BTN_SQSP
+    BTN_GHOST --> GHOST_FLOW
+    BTN_SQSP --> SQSP_FLOW
+    G_POST --> SUCCESS & ERROR
+    S_POST --> SUCCESS & ERROR
+
+    style CONTENT fill:#0d2137,stroke:#1f6feb,color:#c9d1d9
+    style BUTTONS fill:#1c1030,stroke:#a371f7,color:#c9d1d9
+    style GHOST_FLOW fill:#0d2117,stroke:#3fb950,color:#c9d1d9
+    style SQSP_FLOW fill:#0d2117,stroke:#3fb950,color:#c9d1d9
+    style RESULT fill:#161b22,stroke:#d29922,color:#c9d1d9
+
+    style G_JWT fill:#238636,stroke:#3fb950,color:#fff
+    style G_POST fill:#238636,stroke:#3fb950,color:#fff
+    style S_POST fill:#238636,stroke:#3fb950,color:#fff
+    style SUCCESS fill:#238636,stroke:#3fb950,color:#fff
+    style ERROR fill:#da3633,stroke:#f85149,color:#fff
+    </pre>
+</div>
+
+<!-- DIAGRAM 7: Test & Eval Coverage -->
+<div class="diagram-section">
+    <h3>7. Test &amp; Evaluation Coverage</h3>
+    <p>231 tests across three tiers: unit tests for individual components, integration tests for workflows, and evals for system-level quality.</p>
     <pre class="mermaid">
 flowchart TB
     subgraph UNIT["Unit Tests (88 tests)"]
@@ -432,9 +523,70 @@ flowchart TB
     </pre>
 </div>
 
-<!-- DIAGRAM 7: Future Enhancements -->
+<!-- DIAGRAM 8: Deployment Architecture -->
 <div class="diagram-section">
-    <h3>7. Future Enhancements (Not Yet Implemented)</h3>
+    <h3>8. Deployment Architecture — Google Cloud Run</h3>
+    <p>Production deployment on GCP with Secret Manager, Memorystore Redis, and VPC networking.</p>
+    <pre class="mermaid">
+flowchart TB
+    subgraph GCP["Google Cloud Platform"]
+        subgraph CR["Cloud Run"]
+            APP["ContentBlitz<br/><i>Streamlit app<br/>port 8501</i>"]
+        end
+
+        subgraph SM["Secret Manager"]
+            S1["openai-key"]
+            S2["anthropic-key"]
+            S3["tavily-key"]
+            S4["stability-key"]
+            S5["google-client-id"]
+            S6["google-client-secret"]
+            S7["ghost-admin-key"]
+            S8["squarespace-key<br/><i>(optional)</i>"]
+        end
+
+        subgraph VPC["VPC Network"]
+            CONNECTOR["VPC Connector<br/><i>10.8.0.0/28</i>"]
+        end
+
+        subgraph REDIS["Memorystore"]
+            CACHE["Redis 7.0<br/><i>State persistence<br/>+ checkpointing</i>"]
+        end
+
+        AR["Artifact Registry<br/><i>Docker images<br/>tagged by git SHA</i>"]
+        CB["Cloud Build<br/><i>Docker build<br/>+ push</i>"]
+    end
+
+    subgraph EXTERNAL["External Services"]
+        GHOST_E["Ghost CMS<br/><i>the-algorithmic-lens<br/>.ghost.io</i>"]
+        GOOGLE["Google OAuth<br/><i>Identity provider</i>"]
+    end
+
+    USERS["Users"] --> APP
+    APP --> GOOGLE
+    SM --> APP
+    APP --> CONNECTOR --> CACHE
+    CB --> AR --> CR
+    APP --> GHOST_E
+
+    style GCP fill:#0d1117,stroke:#30363d,color:#c9d1d9
+    style CR fill:#0d2137,stroke:#1f6feb,color:#c9d1d9
+    style SM fill:#261c00,stroke:#d29922,color:#c9d1d9
+    style VPC fill:#161b22,stroke:#30363d,color:#c9d1d9
+    style REDIS fill:#261c00,stroke:#d29922,color:#c9d1d9
+    style EXTERNAL fill:#0d2117,stroke:#238636,color:#c9d1d9
+
+    style APP fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style CACHE fill:#9e6a03,stroke:#d29922,color:#fff
+    style CONNECTOR fill:#30363d,stroke:#8b949e,color:#c9d1d9
+    style GHOST_E fill:#238636,stroke:#3fb950,color:#fff
+    style GOOGLE fill:#238636,stroke:#3fb950,color:#fff
+    </pre>
+</div>
+
+<!-- DIAGRAM 9: Future Enhancements -->
+<div class="diagram-section">
+    <h3>9. Future Enhancements (Not Yet Implemented)</h3>
     <p>Planned extensions to the core system. These are architectural blueprints — not currently built.</p>
     <pre class="mermaid">
 flowchart TB
@@ -447,21 +599,24 @@ flowchart TB
         C_IG["Image Generation"]
         C_CS["Content Strategist"]
         C_HG["Hallucination Guard"]
+        C_ABV["A/B Variants"]
+        C_GHOST["Ghost CMS"]
+        C_SQSP["Squarespace"]
     end
 
     subgraph FUTURE["🚀 Planned Enhancements"]
         MCG["📦 Multi-modal Campaign<br/>Generator<br/><i>Coordinated blog +<br/>LinkedIn + image</i>"]
-        ABV["🔬 A/B Variant Generator<br/><i>Hook rotation +<br/>engagement scoring</i>"]
         BVE["🎭 Brand Voice Extraction<br/><i>Analyze existing content<br/>to learn voice profile</i>"]
-        CMS["📤 CMS Publishing<br/><i>WordPress, Ghost,<br/>Medium integration</i>"]
         SCHED["📅 Social Scheduling<br/><i>Buffer, Hootsuite<br/>integration</i>"]
+        ANALYTICS["📊 Content Analytics<br/><i>Engagement tracking<br/>+ performance reports</i>"]
+        MORE_CMS["📤 More CMS Targets<br/><i>WordPress, Medium,<br/>Substack</i>"]
     end
 
     C_BW & C_LW & C_IG -.-> MCG
-    C_BW & C_LW -.-> ABV
     BVE -.->|voice profile| C_BW & C_LW & C_CS
-    C_BW & C_LW -.-> CMS
     C_LW -.-> SCHED
+    C_GHOST & C_SQSP -.-> ANALYTICS
+    C_BW -.-> MORE_CMS
 
     style CURRENT fill:#0d2137,stroke:#1f6feb,color:#c9d1d9
     style FUTURE fill:#161b22,stroke:#30363d,color:#8b949e
@@ -473,12 +628,15 @@ flowchart TB
     style C_IG fill:#1f6feb,stroke:#58a6ff,color:#fff
     style C_CS fill:#1f6feb,stroke:#58a6ff,color:#fff
     style C_HG fill:#da3633,stroke:#f85149,color:#fff
+    style C_ABV fill:#da3633,stroke:#f85149,color:#fff
+    style C_GHOST fill:#238636,stroke:#3fb950,color:#fff
+    style C_SQSP fill:#238636,stroke:#3fb950,color:#fff
 
     style MCG fill:#30363d,stroke:#8b949e,color:#c9d1d9
-    style ABV fill:#30363d,stroke:#8b949e,color:#c9d1d9
     style BVE fill:#30363d,stroke:#8b949e,color:#c9d1d9
-    style CMS fill:#30363d,stroke:#8b949e,color:#c9d1d9
     style SCHED fill:#30363d,stroke:#8b949e,color:#c9d1d9
+    style ANALYTICS fill:#30363d,stroke:#8b949e,color:#c9d1d9
+    style MORE_CMS fill:#30363d,stroke:#8b949e,color:#c9d1d9
     </pre>
 </div>
 
