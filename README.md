@@ -1,6 +1,6 @@
 # ContentBlitz — AI Content Marketing Assistant
 
-A production-grade multi-agent system that generates research reports, SEO blog posts, LinkedIn posts, and images from natural language requests. Built with LangGraph, OpenAI, Anthropic Claude, Tavily AI, and DALL-E 3.
+A production-grade multi-agent system that generates research reports, SEO blog posts, LinkedIn posts, and images from natural language requests — with one-click publishing to Ghost CMS and Squarespace. Built with LangGraph, OpenAI, Anthropic Claude, Tavily AI, and DALL-E 3.
 
 ## Architecture
 
@@ -54,8 +54,11 @@ Rejected requests short-circuit the entire workflow and return a graceful, user-
 | LLM | OpenAI GPT-4o | Anthropic Claude Sonnet |
 | Search | Tavily AI (advanced depth) | — |
 | Image Gen | DALL-E 3 | Stability AI (SDXL) |
+| Blog Publishing | Ghost CMS (Admin API + JWT) | Squarespace (Bearer token) |
 | Orchestration | LangGraph StateGraph | — |
 | UI | Streamlit (chat + tabbed preview) | — |
+| Auth | Google OAuth (production) | — |
+| State Persistence | Redis via Memorystore (prod) | In-memory (dev) |
 | Logging | structlog (JSON prod / console dev) | — |
 | Resilience | Circuit breaker per provider | Automatic fallback chains |
 
@@ -163,6 +166,8 @@ contentblitz/
 │   │   ├── openai_image_client.py  # DALL-E 3 with breaker
 │   │   ├── stability_client.py     # Stability AI with breaker
 │   │   ├── wikipedia_client.py     # Fact verification
+│   │   ├── ghost_client.py         # Ghost CMS Admin API (JWT auth, markdown→HTML)
+│   │   ├── squarespace_client.py   # Squarespace blog publishing (Bearer token)
 │   │   └── base_client.py         # httpx ABC with retry + exponential backoff
 │   ├── workflow/            # LangGraph graph definition
 │   │   ├── graph.py         # build_graph() — StateGraph + shared breaker registry
@@ -212,6 +217,14 @@ All settings can be overridden via environment variables:
 | `ANTHROPIC_MODEL` | `claude-sonnet-4-20250514` | Fallback LLM model |
 | `LOG_LEVEL` | `INFO` | Logging verbosity |
 | `ENVIRONMENT` | `development` | `development` (console logs) or `production` (JSON logs) |
+| `GHOST_ADMIN_API_KEY` | — | Ghost Admin API key (`id:secret` format) — leave blank to hide button |
+| `GHOST_API_URL` | `https://the-algorithmic-lens.ghost.io` | Ghost instance URL (use the `.ghost.io` URL, not custom domain) |
+| `SQUARESPACE_API_KEY` | — | Squarespace Developer API key — leave blank to hide button |
+| `SQUARESPACE_SITE_URL` | — | Squarespace site URL |
+| `SQUARESPACE_BLOG_COLLECTION_ID` | — | Squarespace blog collection ID |
+| `GOOGLE_CLIENT_ID` | — | Google OAuth client ID (production auth gate) |
+| `GOOGLE_CLIENT_SECRET` | — | Google OAuth client secret |
+| `REDIS_URL` | — | Redis URL for state persistence (production) |
 | `API_TIMEOUT` | `60.0` | Timeout for all API calls (seconds) |
 | `MAX_RETRIES` | `3` | Retry count for HTTP clients |
 
@@ -265,6 +278,8 @@ pytest tests/ evals/ -v
 8. **Structured Logging**: structlog with JSON output in production for log aggregation, colored console in development. Every agent logs start/complete/error with timing
 9. **Typed State**: `ContentState` is a `TypedDict` with `Annotated` fields and custom reducers for list merging (errors, processing_log)
 10. **Pydantic Models**: 10 typed output models ensure structured data flows between agents without runtime type errors
+11. **CMS Publishing**: Ghost (JWT-authenticated Admin API) and Squarespace (Bearer token) integration with draft/publish toggle. Buttons auto-hide when keys aren't configured — zero UI clutter for users who don't need them
+12. **Google OAuth Gate**: Production deployments are protected by Google OAuth SSO. Auth is disabled in development when credentials aren't configured
 
 ## Evaluation Criteria Coverage
 
@@ -272,7 +287,7 @@ pytest tests/ evals/ -v
 |---|---|---|
 | Multi-Agent Architecture | 25% | 8 specialized agents with clear separation, BaseAgent ABC pattern, typed state |
 | LangGraph Workflow | 10% | StateGraph with 3 conditional routing edges, typed ContentState |
-| Service Integration | 5% | OpenAI + Anthropic fallback, DALL-E + Stability fallback, Tavily search, circuit breakers |
+| Service Integration | 5% | OpenAI + Anthropic fallback, DALL-E + Stability fallback, Tavily search, Ghost + Squarespace CMS publishing, circuit breakers |
 | Content Quality Pipeline | 5% | SEO scorer (7-factor), quality validator, Hallucination Guard with trust score |
 | Research Quality | 10% | Multi-query Tavily search, URL deduplication, LLM synthesis with key findings |
 | Content Optimization | 10% | SEO scoring (100-point scale), keyword density, readability, heading structure |
@@ -283,10 +298,39 @@ pytest tests/ evals/ -v
 | Documentation | 3% | README + architecture diagrams + inline docstrings |
 | Testing & Evals | 3% | 231 tests (unit + integration + evals), circuit breaker tests, live LLM evals |
 
+## CMS Publishing
+
+ContentBlitz can publish blog posts directly to your CMS with a single click. Both Ghost and Squarespace are supported — buttons appear automatically when the corresponding API keys are configured.
+
+### Ghost CMS
+
+1. In Ghost Admin, go to **Settings → Integrations → Add Custom Integration**
+2. Name it `ContentBlitz` and copy the **Admin API Key** (format: `id:secret`)
+3. Set in `.env`:
+   ```
+   GHOST_ADMIN_API_KEY=64abc123def456:a1b2c3d4e5f6...
+   GHOST_API_URL=https://your-site.ghost.io
+   ```
+4. **Important:** Use the canonical `.ghost.io` URL, not a custom domain — Ghost redirects API calls from custom domains
+
+### Squarespace
+
+1. In Squarespace Admin, go to **Settings → Advanced → Developer API Keys**
+2. Generate a key and copy it
+3. Set in `.env`:
+   ```
+   SQUARESPACE_API_KEY=your-key
+   SQUARESPACE_SITE_URL=https://your-site.com
+   SQUARESPACE_BLOG_COLLECTION_ID=your-collection-id
+   ```
+
+Both publishers support **draft mode** (default) or immediate publishing, and convert Markdown to HTML automatically.
+
 ## Future Enhancements
 
 - Multi-modal Campaign Generator (blog + LinkedIn + image as one coordinated package)
 - Brand Voice Extraction from user's existing content (website, blog archive, LinkedIn posts)
 - External engagement scoring APIs (CoSchedule, Sharethrough, BuzzSumo) to supplement LLM-based scoring
-- CMS integration (WordPress, Ghost, Medium)
+- Additional CMS targets (WordPress, Medium, Substack)
 - Social media scheduling (Buffer, Hootsuite)
+- Content analytics and engagement tracking
