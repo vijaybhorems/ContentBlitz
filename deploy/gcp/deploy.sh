@@ -70,6 +70,35 @@ if [ -n "${REDIS_URL_VALUE}" ]; then
     ENV_VARS="${ENV_VARS},REDIS_URL=${REDIS_URL_VALUE}"
 fi
 
+# ── Build secrets list (only include optional publishing secrets if they exist) ──
+SECRETS="OPENAI_API_KEY=contentblitz-openai-key:latest"
+SECRETS="${SECRETS},ANTHROPIC_API_KEY=contentblitz-anthropic-key:latest"
+SECRETS="${SECRETS},TAVILY_API_KEY=contentblitz-tavily-key:latest"
+SECRETS="${SECRETS},STABILITY_API_KEY=contentblitz-stability-key:latest"
+SECRETS="${SECRETS},GOOGLE_CLIENT_ID=${OAUTH_CLIENT_ID_SECRET}:latest"
+SECRETS="${SECRETS},GOOGLE_CLIENT_SECRET=${OAUTH_CLIENT_SECRET_SECRET}:latest"
+
+# Optional: Squarespace (skip if secret doesn't exist)
+if gcloud secrets describe contentblitz-squarespace-key --project="${GCP_PROJECT_ID}" &>/dev/null; then
+    SECRETS="${SECRETS},SQUARESPACE_API_KEY=contentblitz-squarespace-key:latest"
+    echo "    ✓ Squarespace secret found"
+else
+    echo "    ⏭ Squarespace secret not found — skipping (button will be hidden)"
+fi
+
+# Optional: Ghost (skip if secret doesn't exist)
+if gcloud secrets describe contentblitz-ghost-admin-key --project="${GCP_PROJECT_ID}" &>/dev/null; then
+    SECRETS="${SECRETS},GHOST_ADMIN_API_KEY=contentblitz-ghost-admin-key:latest"
+    echo "    ✓ Ghost secret found"
+else
+    echo "    ⏭ Ghost secret not found — skipping (button will be hidden)"
+fi
+
+# ── Build env vars for publishing endpoints ──
+PUBLISH_ENV="GHOST_API_URL=https://the-algorithmic-lens.ghost.io"
+PUBLISH_ENV="${PUBLISH_ENV},SQUARESPACE_SITE_URL=https://www.vijaybhore.dev"
+PUBLISH_ENV="${PUBLISH_ENV},SQUARESPACE_BLOG_COLLECTION_ID=5c7a3571652dea887e9e8bbf"
+
 # Build the deploy command
 DEPLOY_CMD=(
     gcloud run deploy "${CLOUD_RUN_SERVICE}"
@@ -84,8 +113,8 @@ DEPLOY_CMD=(
     --timeout="${CLOUD_RUN_TIMEOUT}"
     --concurrency="${CLOUD_RUN_CONCURRENCY}"
     --allow-unauthenticated
-    --set-secrets="OPENAI_API_KEY=contentblitz-openai-key:latest,ANTHROPIC_API_KEY=contentblitz-anthropic-key:latest,TAVILY_API_KEY=contentblitz-tavily-key:latest,STABILITY_API_KEY=contentblitz-stability-key:latest,GOOGLE_CLIENT_ID=${OAUTH_CLIENT_ID_SECRET}:latest,GOOGLE_CLIENT_SECRET=${OAUTH_CLIENT_SECRET_SECRET}:latest"
-    --set-env-vars="${ENV_VARS},OAUTH_REDIRECT_URI=${OAUTH_REDIRECT_URI}"
+    --set-secrets="${SECRETS}"
+    --set-env-vars="${ENV_VARS},OAUTH_REDIRECT_URI=${OAUTH_REDIRECT_URI},${PUBLISH_ENV}"
     --vpc-connector="${VPC_CONNECTOR}"
     --vpc-egress=private-ranges-only
     --quiet
