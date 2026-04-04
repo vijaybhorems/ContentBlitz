@@ -35,7 +35,7 @@ class QueryHandlerAgent(BaseAgent):
             {"role": "system", "content": self._safety_system_prompt},
             {"role": "user", "content": user_query},
         ]
-        result = await self.llm.generate_json(messages)
+        result = await self.llm.generate_json_fast(messages)
         is_safe = result.get("is_safe", True)
         reason = result.get("reason", "")
         return bool(is_safe), str(reason)
@@ -61,7 +61,7 @@ class QueryHandlerAgent(BaseAgent):
             }
 
         messages = self._build_messages(user_query)
-        result = await self.llm.generate_json(messages)
+        result = await self.llm.generate_json_fast(messages)
 
         intent = result.get("intent", "research")
         if intent not in VALID_INTENTS:

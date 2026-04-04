@@ -55,7 +55,7 @@ class ABVariantGeneratorAgent(BaseAgent):
         )
 
         messages = self._build_messages(user_content)
-        result = await self.llm.generate_json(messages)
+        result = await self.llm.generate_json_fast(messages)
 
         # Parse variants
         variants = []
